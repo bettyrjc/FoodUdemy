@@ -1,47 +1,36 @@
-import React, {useState} from 'react'
-import { View,  StyleSheet, Text } from 'react-native'
-import SearchBar from '../components/SearchBar'
-import yelp from '../api/yelp'
+import React, { useState } from "react";
+import { View, StyleSheet, Text } from "react-native";
+import SearchBar from "../components/SearchBar";
+import ResultsList from "../components/ResultsList";
+import useResults from "../hooks/useResults";
 const SearchScreen = () => {
+  const [term, setTerm] = useState("");
+  const [searchApi, results, errorMessage] = useResults();
+  console.log(results);
+  const filterPrice = (price) => {
+    // price === "$" || "$$" || "$$$"
+    return results.filter((result) => {
+      return result.price === price;
+    });
+  };
+  return (
+    <View>
+      <SearchBar
+        onTermSubmit={() => searchApi(term)}
+        term={term}
+        onTermChange={setTerm}
+      />
+      {errorMessage ? (
+        <Text>{errorMessage}</Text>
+      ) : (
+        <Text>{results.length}</Text>
+      )}
+      <ResultsList title="Cost Effective" results={filterPrice("$")} />
+      <ResultsList title="Big Pricier" results={filterPrice("$$")} />
+      <ResultsList title="Big Spender" results={filterPrice("$$$")} />
+    </View>
+  );
+};
 
-    const [term, setTerm] = useState('')
-    const [results, setResults] = useState([])
-    const [errorMessage, setErrorMessage] = useState('')
-    const searchApi = async (searchTerm) => {
-        console.log('hi there!');
-        try {
-            const response = await yelp.get('/search', {
-            params: {
-                limit: 50,
-                term: searchTerm,
-                location: 'san jose',
-            },
-        });
-        setResults(response.data.businesses)
-        } catch (err) {
-            setErrorMessage('Something went wrog')
-            console.log('err', err);
-        }
-    }
-
-    // call search api
-    // is first render
-    // searchApi('pasta') BAD CODE
-    return (
-        <View>
-            <SearchBar
-                onTermSubmit={()=>searchApi(term)}
-                term={term}
-                onTermChange={setTerm}
-            />
-            {
-                errorMessage
-                    ? <Text>{errorMessage}</Text>
-                    : <Text>{results.length}</Text>
-            }
-        </View>
-    )
-}
-
-const styles = StyleSheet.create({})
-export default SearchScreen
+const styles = StyleSheet.create({});
+export default SearchScreen;
